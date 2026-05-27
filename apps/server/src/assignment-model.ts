@@ -32,6 +32,7 @@ const AssignmentSchema = new Schema(
     paper: {
       title: { type: String, required: true },
       subject: { type: String, required: true },
+      className: { type: String, required: false },
       duration: { type: String, required: true },
       totalMarks: { type: Number, required: true },
       sections: { type: [SectionSchema], required: true },
@@ -51,12 +52,7 @@ export async function connectMongo() {
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000,
-      // keep these for compatibility with different mongoose versions
-      // @ts-ignore
-      useNewUrlParser: true,
-      // @ts-ignore
-      useUnifiedTopology: true,
-    } as mongoose.ConnectOptions);
+    });
     return true;
   } catch (error) {
     logger.warn(`MongoDB connection failed: ${error}`);
@@ -92,3 +88,13 @@ export async function findAssignment(
   return assignment?.paper || null;
 }
 
+export async function deleteAssignment(
+  assignmentId: string,
+  mongoEnabled: boolean,
+) {
+  if (!mongoEnabled) {
+    return;
+  }
+
+  await AssignmentModel.deleteOne({ assignmentId });
+}

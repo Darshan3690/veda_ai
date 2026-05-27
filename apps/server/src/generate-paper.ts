@@ -17,11 +17,23 @@ type GenerateInput = {
   totalQuestions: number;
   totalMarks: number;
   instructions?: string;
+  sourceText?: string;
 };
+
+const MAX_TOTAL_MARKS = 100;
+const MAX_TOTAL_QUESTIONS = 40;
 
 export async function generateQuestionPaper(
   input: GenerateInput,
 ): Promise<QuestionPaper> {
+  if (input.totalMarks > MAX_TOTAL_MARKS) {
+    throw new Error("Total marks exceeded");
+  }
+
+  if (input.totalQuestions > MAX_TOTAL_QUESTIONS) {
+    throw new Error("Total questions exceeded");
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -74,7 +86,7 @@ export async function generateQuestionPaper(
       try {
         const json = JSON.parse(raw);
         const parsed = QuestionPaperSchema.safeParse(json);
-        if (parsed.success) return parsed.data;
+        if (parsed.success) return withInputMetadata(parsed.data, input);
         jsonParseError = parsed.error;
       } catch (err) {
         jsonParseError = err;
@@ -85,7 +97,7 @@ export async function generateQuestionPaper(
         const cleaned = cleanJsonString(raw);
         const json = JSON.parse(cleaned);
         const parsed = QuestionPaperSchema.safeParse(json);
-        if (parsed.success) return parsed.data;
+        if (parsed.success) return withInputMetadata(parsed.data, input);
         lastError = parsed.error;
       } catch (err) {
         lastError = jsonParseError || err;
@@ -98,6 +110,16 @@ export async function generateQuestionPaper(
   // Graceful fallback: return sample paper instead of throwing to avoid crashing workers
   logger.warn("Gemini generation failed after attempts:", String(lastError));
   return sampleQuestionPaper;
+}
+
+function withInputMetadata(
+  paper: QuestionPaper,
+  input: GenerateInput,
+): QuestionPaper {
+  return {
+    ...paper,
+    className: paper.className || input.className,
+  };
 }
 
 function stripJsonFence(value: string) {

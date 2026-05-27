@@ -103,4 +103,67 @@ Puppeteer opens the generated output page and renders a print-ready PDF so the b
 
 - The server includes a small Zod-based env validator (`apps/server/src/config/env.ts`) to surface missing or malformed environment variables early. Required services: Redis (BullMQ), MongoDB (optional), and an LLM API key for full generation.
 
+## Run with Docker Compose (recommended)
+
+This repository includes a `docker-compose.yml` that starts local Redis and MongoDB for development.
+
+1. Start Redis and Mongo:
+
+```bash
+docker-compose up -d
+```
+
+2. Create env files (examples):
+
+Server: `apps/server/.env`
+
+```text
+PORT=4000
+REDIS_URL=redis://127.0.0.1:6379
+MONGODB_URI=mongodb://127.0.0.1:27017/veda
+WEB_URL=http://localhost:3000
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-flash-latest
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+Web: `apps/web/.env.local` (or copy `.env.example`)
+
+```text
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+3. Install dependencies and run apps in separate terminals:
+
+```powershell
+# Server
+cd "c:\open source con\veda-ai\veda-ai\apps\server"
+npm install
+npm run dev
+
+# Web
+cd "c:\open source con\veda-ai\veda-ai\apps\web"
+npm install
+npm run dev
+```
+
+4. If port 3000 is occupied, free it or run the web on another port:
+
+```powershell
+npx kill-port 3000
+# or
+$env:PORT="3001"
+# npm run dev
+```
+
+5. Visit the app in your browser: `http://localhost:3000` (or the port you chose).
+
+6. Cleanup (stop docker services):
+
+```bash
+docker-compose down
+```
+
+If you want, I can also add a `docker-compose` service to build and run the Node apps themselves — tell me if you'd prefer a one-command startup.
+
 
