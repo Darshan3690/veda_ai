@@ -91,8 +91,15 @@ connection.on("ready", () => {
 connection.on("close", () => {
   redisReady = false;
 });
+
+// BullMQ connection options
+const bullmqConnection = {
+  url: redisUrl,
+  maxRetriesPerRequest: null,
+} as unknown as { host: string; port: number; maxRetriesPerRequest: null };
+
 const queue = new Queue("assignment-generation", {
-  connection: redisUrl,
+  connection: bullmqConnection as unknown as any,
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 2000 },
@@ -117,7 +124,7 @@ new Worker(
       throw error;
     }
   },
-  { connection: redisUrl },
+  { connection: bullmqConnection as unknown as any },
 );
 
 app.post("/assignments", upload.single("file"), async (request, response) => {
