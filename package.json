@@ -1,0 +1,16 @@
+{
+  "name": "veda-ai",
+  "version": "1.0.0",
+  "description": "AI assignment generation workflow for teachers",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=apps/web",
+    "dev": "npm run dev --workspace=apps/web",
+    "start": "npm start --workspace=apps/web"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
