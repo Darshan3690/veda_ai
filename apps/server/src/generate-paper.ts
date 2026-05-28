@@ -18,6 +18,7 @@ type GenerateInput = {
   totalMarks: number;
   instructions?: string;
   sourceText?: string;
+  questionTypes?: Array<{ type: string; count: number; marks: number }>;
 };
 
 const MAX_TOTAL_MARKS = 100;
