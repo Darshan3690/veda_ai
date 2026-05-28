@@ -92,7 +92,7 @@ connection.on("close", () => {
   redisReady = false;
 });
 const queue = new Queue("assignment-generation", {
-  connection,
+  connection: redisUrl,
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 2000 },
@@ -117,7 +117,7 @@ new Worker(
       throw error;
     }
   },
-  { connection },
+  { connection: redisUrl },
 );
 
 app.post("/assignments", upload.single("file"), async (request, response) => {
