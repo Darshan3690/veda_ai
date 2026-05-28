@@ -212,15 +212,18 @@ app.delete("/assignments/:id", async (request, response) => {
 });
 
 app.get("/assignments/:id/pdf", async (request, response) => {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  let browser: puppeteer.Browser | null = null;
   try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
     const page = await browser.newPage();
     const assignmentId = request.params.id;
     await page.goto(`${webUrl}/assignments/${assignmentId}/print`, {
       waitUntil: "networkidle0",
+      timeout: 60000,
     });
     const pdf = await page.pdf({
       format: "A4",
@@ -233,8 +236,12 @@ app.get("/assignments/:id/pdf", async (request, response) => {
       "attachment; filename=veda-ai-assignment.pdf",
     );
     response.send(pdf);
+  } catch (err) {
+    logger.error(`PDF generation error for ${request.params.id}:`, err);
+    const message = err instanceof Error ? err.message : String(err);
+    response.status(500).json({ message: "PDF generation failed", error: message });
   } finally {
-    await browser.close();
+    if (browser) await browser.close();
   }
 });
 
