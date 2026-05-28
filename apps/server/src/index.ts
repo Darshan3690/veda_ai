@@ -114,6 +114,12 @@ app.post("/assignments", upload.single("file"), async (request, response) => {
   const totalQuestions = Number(request.body.totalQuestions || 10);
   const totalMarks = Number(request.body.totalMarks || 20);
   const sourceText = await extractSourceText(request.file);
+  let questionTypes: Array<{ type: string; count: number; marks: number }> = [];
+  try {
+    questionTypes = JSON.parse(request.body.questionTypes || "[]");
+  } catch {
+    // fallback if invalid JSON
+  }
   const input = {
     subject: request.body.subject || "Science",
     className: request.body.className || "8",
@@ -121,6 +127,7 @@ app.post("/assignments", upload.single("file"), async (request, response) => {
     totalMarks,
     instructions: request.body.instructions,
     sourceText,
+    questionTypes,
   };
 
   if (input.totalMarks > MAX_TOTAL_MARKS) {
@@ -164,9 +171,21 @@ app.get("/assignments/:id", async (request, response) => {
 });
 
 app.delete("/assignments/:id", async (request, response) => {
-  assignments.delete(request.params.id);
-  await deleteAssignment(request.params.id, mongoEnabled);
-  response.status(204).send();
+  const assignmentId = request.params.id;
+  try {
+    // Delete from memory cache
+    const deletedFromMemory = assignments.delete(assignmentId);
+    logger.info(`Delete request for ${assignmentId}: Removed from memory cache = ${deletedFromMemory}`);
+    
+    // Delete from MongoDB
+    const dbResult = await deleteAssignment(assignmentId, mongoEnabled);
+    logger.info(`Database delete result: ${JSON.stringify(dbResult)}`);
+    
+    response.status(204).send();
+  } catch (error) {
+    logger.error(`Error deleting assignment ${assignmentId}: ${error}`);
+    response.status(500).json({ message: "Failed to delete assignment", error: String(error) });
+  }
 });
 
 app.get("/assignments/:id/pdf", async (request, response) => {
