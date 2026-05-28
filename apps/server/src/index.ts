@@ -26,7 +26,8 @@ const logger = {
     if (process.env.NODE_ENV !== "production") console.warn(...args);
   },
   error: (...args: unknown[]) => {
-    if (process.env.NODE_ENV !== "production") console.error(...args);
+    // Always log errors in production so we can debug runtime issues.
+    console.error(...args);
   },
 };
 
