@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build --prefix apps/web",
+  "installCommand": "npm ci && npm ci --prefix apps/web",
+  "outputDirectory": "apps/web/.next",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@veda_ai_api_url"
+  }
+}

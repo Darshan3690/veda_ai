@@ -6,18 +6,22 @@ const EnvSchema = z.object({
   MONGODB_URI: z.string().optional(),
   REDIS_URL: z.string().optional(),
   WEB_URL: z.string().optional(),
+  CLIENT_URL: z.string().optional(),
   PORT: z.string().optional(),
 });
 
 export const env = EnvSchema.parse(process.env);
 
 export function getServerConfig() {
+  // CLIENT_URL takes precedence in production, fallback to WEB_URL
+  const clientUrl = env.CLIENT_URL || env.WEB_URL || "http://localhost:3000";
   return {
     geminiKey: env.GEMINI_API_KEY,
     geminiModel: env.GEMINI_MODEL || "gemini-flash-latest",
     mongoUri: env.MONGODB_URI,
     redisUrl: env.REDIS_URL || "redis://127.0.0.1:6379",
-    webUrl: env.WEB_URL || "http://localhost:3000",
+    webUrl: clientUrl,
+    clientUrl: clientUrl,
     port: Number(env.PORT || 4000),
   };
 }

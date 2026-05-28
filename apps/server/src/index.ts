@@ -32,11 +32,15 @@ const logger = {
 
 const app = express();
 const httpServer = createServer(app);
+const clientUrl = process.env.CLIENT_URL || process.env.WEB_URL || "http://localhost:3000";
 const io = new Server(httpServer, {
-  cors: { origin: process.env.WEB_URL || "http://localhost:3000" },
+  cors: {
+    origin: clientUrl,
+    credentials: true,
+  },
 });
 const port = Number(process.env.PORT || 4000);
-const webUrl = process.env.WEB_URL || "http://localhost:3000";
+const webUrl = clientUrl;
 const MAX_TOTAL_MARKS = 100;
 const MAX_TOTAL_QUESTIONS = 40;
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
@@ -57,7 +61,14 @@ const upload = multer({
   },
 });
 
-app.use(cors({ origin: webUrl }));
+app.use(
+  cors({
+    origin: webUrl,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 io.on("connection", (socket) => {

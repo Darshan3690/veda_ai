@@ -3,6 +3,7 @@ import { getAssignment } from "@/lib/assignment-api";
 
 export const metadata = {
   title: "Question Paper",
+  robots: "noindex,nofollow",
 };
 
 export default async function PrintPage({
@@ -14,8 +15,11 @@ export default async function PrintPage({
   const assignment = await getAssignment(id);
 
   return (
-    <main className="min-h-screen bg-white px-5 py-6 text-[#242424] print:p-0">
-      <QuestionPaper assignment={assignment} variant="print" />
-    </main>
+    <>
+      {/* Print-only page: No navbar, no sidebar, only content */}
+      <main className="min-h-screen bg-white px-5 py-6 text-[#242424] print:p-0">
+        <QuestionPaper assignment={assignment} variant="print" />
+      </main>
+    </>
   );
 }
