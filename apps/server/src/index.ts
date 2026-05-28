@@ -71,6 +71,11 @@ app.use(
 );
 app.use(express.json());
 
+// Health check endpoint
+app.get("/health", (request, response) => {
+  response.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 io.on("connection", (socket) => {
   socket.on("assignment:join", (assignmentId: string) => {
     socket.join(assignmentId);
