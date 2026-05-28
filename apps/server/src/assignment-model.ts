@@ -2,8 +2,14 @@ import mongoose, { Schema } from "mongoose";
 import type { QuestionPaper } from "../validators/question-paper.schema.js";
 
 const logger = {
+  info: (...args: unknown[]) => {
+    if (process.env.NODE_ENV !== "production") console.info(...args);
+  },
   warn: (...args: unknown[]) => {
     if (process.env.NODE_ENV !== "production") console.warn(...args);
+  },
+  error: (...args: unknown[]) => {
+    if (process.env.NODE_ENV !== "production") console.error(...args);
   },
 };
 
@@ -72,7 +78,7 @@ export async function saveAssignment(
   await AssignmentModel.findOneAndUpdate(
     { assignmentId },
     { assignmentId, paper },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: 'after' },
   );
 }
 
@@ -93,8 +99,16 @@ export async function deleteAssignment(
   mongoEnabled: boolean,
 ) {
   if (!mongoEnabled) {
-    return;
+    logger.warn(`MongoDB disabled - skipping delete for ${assignmentId}`);
+    return { deletedCount: 0, success: false, message: "MongoDB not enabled" };
   }
 
-  await AssignmentModel.deleteOne({ assignmentId });
+  try {
+    const result = await AssignmentModel.deleteOne({ assignmentId });
+    logger.warn(`Deleted assignment ${assignmentId}: ${result.deletedCount} document(s) removed from MongoDB`);
+    return { deletedCount: result.deletedCount, success: result.deletedCount > 0, message: `Deleted ${result.deletedCount} document(s)` };
+  } catch (error) {
+    logger.error(`Failed to delete assignment ${assignmentId}: ${error}`);
+    throw error;
+  }
 }
