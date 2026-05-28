@@ -246,6 +246,19 @@ app.get("/assignments/:id/pdf", async (request, response) => {
   }
 });
 
+// Debug route to check Puppeteer can launch in the environment
+app.get("/_debug/puppeteer", async (_req, res) => {
+  try {
+    const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+    const ua = await (await browser.version());
+    await browser.close();
+    res.json({ ok: true, browser: ua });
+  } catch (err) {
+    console.error("Puppeteer debug launch failed:", err);
+    res.status(500).json({ ok: false, error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 app.use(
   (
     error: unknown,
